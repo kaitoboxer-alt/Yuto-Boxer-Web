@@ -1,4 +1,2 @@
-# 11_Yuyo-SecretBook
-# yuto-boxer-web
-# yuto-boxer
+# B.B.PW Official Repository
 # Yuto-Boxer-Web
