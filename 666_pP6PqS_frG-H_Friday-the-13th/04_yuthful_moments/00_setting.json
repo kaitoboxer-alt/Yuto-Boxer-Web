@@ -1,0 +1,27 @@
+{
+  "group_name": "Youthful Moments",
+  "base_location": "Convenience Store / Riverside / Training Room",
+  "characters": [
+    {
+      "id": "gakuran",
+      "name": "（お決まりの名前）",
+      "style": "Boxing",
+      "personality": "Teasing / Straightforward",
+      "item": "Blue Boxing Gloves / School Gakuran"
+    },
+    {
+      "id": "tanktop",
+      "name": "（お決まりの名前）",
+      "style": "Pro-Wrestling",
+      "personality": "Competitive / Sulky / Sincere",
+      "item": "Black Tank Top / Navy Shorts / Blue Lame Trunks"
+    },
+    {
+      "id": "blazer",
+      "name": "（お決まりの名前）",
+      "style": "Boxing",
+      "personality": "Calm / Observant / Wry Smile",
+      "item": "Red Boxing Gloves / School Blazer"
+    }
+  ]
+}

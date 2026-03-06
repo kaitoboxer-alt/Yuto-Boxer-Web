@@ -1,0 +1,19 @@
+[
+  {
+    "id": "match_20240820",
+    "date": "2024.08.20",
+    "headline": "暁 蓮、驚異の命中率で圧倒",
+    "left_boxer": {
+      "name": "Akatsuki_Ren",
+      "display_name": "暁 蓮",
+      "accuracy": "25.3%"
+    },
+    "right_boxer": {
+      "name": "Opponent_Name",
+      "display_name": "対戦相手",
+      "accuracy": "18.5%"
+    },
+    "owner_comment": "tbcb_Resultに保存した公式記録の通り、25.3%という数字は彼のキャリアハイだ。この夜、彼は確かにリングを支配していた。",
+    "raw_data_link": "./tbcb_Result/Scheduler_2024_08_20_20_33_47.html"
+  }
+]

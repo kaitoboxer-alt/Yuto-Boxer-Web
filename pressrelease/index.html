@@ -2,46 +2,106 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>B.B.PW - Area</title>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@700&display=swap" rel="stylesheet">
+    <title>B.B.PW - Press Release</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'M PLUS 1 Code', monospace; }
-        
-        img { pointer-events: none; user-select: none; }
+        body {
+            /* 背景画像（既存のものを想定） */
+            background: url('../../images/background.webp') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0; font-family: "serif";
+        }
+        .newspaper-wrapper {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            padding: 20px;
+        }
+        .newspaper-page {
+            width: 100%; max-width: 800px; background: #f9f7f1; padding: 40px;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.5); border: 1px solid #dcdcdc;
+            color: #1a1a1a; position: relative;
+        }
+        .headline { font-size: 2.8em; font-weight: bold; text-align: center; border-bottom: 2px solid #000; margin: 20px 0; }
+        .match-area { display: flex; justify-content: space-between; gap: 20px; margin: 30px 0; }
+        .boxer-card { width: 30%; text-align: center; }
+        .boxer-card img { width: 100%; border: 1px solid #000; padding: 3px; background: #fff; }
+        .stats-table { width: 35%; border-collapse: collapse; font-size: 0.9em; }
+        .stats-table td { border-bottom: 1px solid #ccc; padding: 8px; text-align: center; }
+        .comment-box { border-top: 3px double #333; margin-top: 30px; padding-top: 15px; font-style: italic; }
 
-        .bg-fixed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://media.yuto-boxer.com/common/placeholder_bg.webp') no-repeat center; background-size: cover; filter: brightness(0.2); z-index: 1; }
-        .msg-container { position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .msg-box { border: 1px solid #333; padding: 40px; border-radius: 12px; background: rgba(0,0,0,0.6); color: #888; text-align: center; }
-
-        .bottom-nav { position: fixed; bottom: 60px; left: 30px; right: 30px; display: flex; gap: 10px; z-index: 1000; align-items: center; }
-        .nav-item { position: relative; background: rgba(0, 5, 15, 0.8); border: 1.5px solid rgba(255, 255, 255, 0.15); color: #fff; text-decoration: none; padding: 12px 18px; border-radius: 6px; font-size: 0.85rem; transition: 0.3s; white-space: nowrap; }
-        .nav-item:not(.current):hover { border-color: #00f0ff; transform: translateY(-3px); }
-        .nav-item.current { border-color: #bd00ff; box-shadow: 0 0 12px #bd00ff; pointer-events: none; }
-        .nav-item::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 15px); left: 50%; transform: translateX(-50%); background: rgba(0, 240, 255, 0.2); border: 1px solid #00f0ff; color: #00f0ff; padding: 6px 14px; border-radius: 4px; font-size: 0.75rem; opacity: 0; visibility: hidden; transition: 0.2s; }
-        .nav-item:hover::after { opacity: 1; visibility: visible; }
-        .send-message-btn { margin-left: auto; background: rgba(0, 240, 255, 0.15); border: 1.5px solid #00f0ff; color: #00f0ff; border-radius: 50px; font-weight: bold; min-width: 160px; text-align: center; }
+        /* ナビゲーション */
+        .nav-btn {
+            position: fixed; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.5); color: white; border: none;
+            padding: 20px; cursor: pointer; font-size: 24px; transition: 0.3s;
+        }
+        .nav-btn:hover { background: rgba(0,0,0,0.8); }
+        .btn-prev { left: 10px; }
+        .btn-next { right: 10px; }
     </style>
 </head>
-<body oncontextmenu="return false;" onselectstart="return false;" onmousedown="if(event.button==2) return false;">
-    <div class="bg-fixed"></div>
-    <div class="msg-container"><div class="msg-box"><h2>UNDER CONSTRUCTION</h2><p>このエリアは現在、制作中です。</p></div></div>
-    <nav id="global-nav" class="bottom-nav"></nav>
-    <script>
-        const configPath = '/666_pP6PqS_frG-H_Friday-the-13th/00_text/00_System_text/config.json';
-        async function initNav() {
-            try {
-                const res = await fetch(configPath); const data = await res.json();
-                const nav = document.getElementById('global-nav'); const currentPath = window.location.pathname;
-                Object.keys(data.menu_items).forEach(key => {
-                    const item = data.menu_items[key]; if (!item.active) return;
-                    const a = document.createElement('a'); a.href = item.path; a.className = 'nav-item'; a.innerText = item.label; a.setAttribute('data-tooltip', item.jp);
-                    if (key === 'send_message') a.classList.add('send-message-btn');
-                    if (currentPath.indexOf(item.path) !== -1) a.classList.add('current');
-                    nav.appendChild(a);
-                });
-            } catch(e) {}
+<body>
+
+<button class="nav-btn btn-prev" onclick="changePage(-1)">〈</button>
+<button class="nav-btn btn-next" onclick="changePage(1)">〉</button>
+
+<div class="newspaper-wrapper">
+    <article class="newspaper-page" id="paper">
+        </article>
+</div>
+
+<script>
+    let pressData = [];
+    let currentIndex = 0;
+    const ts = new Date().getTime(); // キャッシュ破棄用
+
+    // 1. JSON読み込み
+    fetch(`./press_data.json?v=${ts}`)
+        .then(res => res.json())
+        .then(data => {
+            pressData = data;
+            renderPage(0);
+        });
+
+    function renderPage(index) {
+        if (index < 0 || index >= pressData.length) return;
+        currentIndex = index;
+        const item = pressData[currentIndex];
+
+        // 画像パス生成関数 (01_character_faceフォルダを参照)
+        const getImg = (name) => `./01_character_face/${name}.webp?v=${ts}`;
+
+        document.getElementById('paper').innerHTML = `
+            <div style="text-align:right; font-size:0.9em;">Issue Date: ${item.date}</div>
+            <h1 class="headline">${item.headline}</h1>
+            <div class="match-area">
+                <div class="boxer-card">
+                    <img src="${getImg(item.left_boxer.name)}" onerror="this.src='./01_character_face/default.webp'">
+                    <p><strong>${item.left_boxer.display_name}</strong></p>
+                    <p>Accuracy: ${item.left_boxer.accuracy}</p>
+                </div>
+                <table class="stats-table">
+                    <tr><td>VS</td></tr>
+                    <tr><td>Punch Stats</td></tr>
+                    <tr><td>${item.left_boxer.total_punches} <br> Total <br> ${item.right_boxer.total_punches}</td></tr>
+                </table>
+                <div class="boxer-card">
+                    <img src="${getImg(item.right_boxer.name)}" onerror="this.src='./01_character_face/default.webp'">
+                    <p><strong>${item.right_boxer.display_name}</strong></p>
+                    <p>Accuracy: ${item.right_boxer.accuracy}</p>
+                </div>
+            </div>
+            <div class="comment-box">
+                <strong>Commentary:</strong><br>
+                ${item.owner_comment}
+            </div>
+        `;
+    }
+
+    function changePage(dir) {
+        const newIndex = currentIndex + dir;
+        if (newIndex >= 0 && newIndex < pressData.length) {
+            renderPage(newIndex);
         }
-        window.onload = initNav;
-    </script>
+    }
+</script>
 </body>
 </html>

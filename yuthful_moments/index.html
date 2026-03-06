@@ -2,46 +2,132 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>B.B.PW - Area</title>
+    <title>Youthful Moments - B.B.PW</title>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@700&display=swap" rel="stylesheet">
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'M PLUS 1 Code', monospace; }
-        
-        img { pointer-events: none; user-select: none; }
 
-        .bg-fixed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://media.yuto-boxer.com/common/placeholder_bg.webp') no-repeat center; background-size: cover; filter: brightness(0.2); z-index: 1; }
-        .msg-container { position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .msg-box { border: 1px solid #333; padding: 40px; border-radius: 12px; background: rgba(0,0,0,0.6); color: #888; text-align: center; }
+        /* 映画館の暗がり背景 */
+        .theater-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.95)); z-index: 1;
+        }
 
-        .bottom-nav { position: fixed; bottom: 60px; left: 30px; right: 30px; display: flex; gap: 10px; z-index: 1000; align-items: center; }
-        .nav-item { position: relative; background: rgba(0, 5, 15, 0.8); border: 1.5px solid rgba(255, 255, 255, 0.15); color: #fff; text-decoration: none; padding: 12px 18px; border-radius: 6px; font-size: 0.85rem; transition: 0.3s; white-space: nowrap; }
-        .nav-item:not(.current):hover { border-color: #00f0ff; transform: translateY(-3px); }
-        .nav-item.current { border-color: #bd00ff; box-shadow: 0 0 12px #bd00ff; pointer-events: none; }
-        .nav-item::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 15px); left: 50%; transform: translateX(-50%); background: rgba(0, 240, 255, 0.2); border: 1px solid #00f0ff; color: #00f0ff; padding: 6px 14px; border-radius: 4px; font-size: 0.75rem; opacity: 0; visibility: hidden; transition: 0.2s; }
-        .nav-item:hover::after { opacity: 1; visibility: visible; }
-        .send-message-btn { margin-left: auto; background: rgba(0, 240, 255, 0.15); border: 1.5px solid #00f0ff; color: #00f0ff; border-radius: 50px; font-weight: bold; min-width: 160px; text-align: center; }
+        /* メインスクリーン */
+        .screen-container {
+            position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
+            width: 80%; aspect-ratio: 16 / 9; z-index: 10;
+            box-shadow: 0 0 60px rgba(255, 255, 255, 0.05); border: 2px solid #111;
+        }
+        #main-photo { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s; }
+
+        /* 観客の3人（最前面） */
+        .audience-layer {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 1400px; z-index: 50; pointer-events: none;
+        }
+        #audience-img { width: 100%; height: auto; display: block; filter: brightness(0.6) contrast(1.1); }
+
+        /* 会話吹き出し */
+        .comment-overlay {
+            position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
+            width: 70%; z-index: 100; display: flex; gap: 15px; justify-content: center;
+        }
+        .bubble {
+            background: rgba(245, 245, 235, 0.9); border-radius: 6px; padding: 12px 18px;
+            font-size: 0.85rem; color: #222; opacity: 0; transition: 0.4s; transform: translateY(10px);
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.6); border-bottom: 3px solid #ccc;
+        }
+        .bubble.active { opacity: 1; transform: translateY(0); }
+
+        /* フィルムロール選択バー */
+        .film-roll {
+            position: fixed; bottom: 20px; left: 0; width: 100%; height: 90px;
+            z-index: 1000; display: flex; gap: 12px; padding: 0 20px;
+            overflow-x: auto; scroll-behavior: smooth; align-items: center;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); border-top: 1px solid #333;
+        }
+        .thumb {
+            flex: 0 0 120px; height: 68px; border: 2px solid #444; cursor: pointer;
+            transition: 0.3s; opacity: 0.5; overflow: hidden;
+        }
+        .thumb:hover, .thumb.active { opacity: 1; border-color: #00f0ff; transform: scale(1.05); }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* コピー対策 */
+        img { pointer-events: none; user-select: none; -webkit-user-select: none; }
+        .film-roll::-webkit-scrollbar { height: 4px; }
+        .film-roll::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
     </style>
 </head>
-<body oncontextmenu="return false;" onselectstart="return false;" onmousedown="if(event.button==2) return false;">
-    <div class="bg-fixed"></div>
-    <div class="msg-container"><div class="msg-box"><h2>UNDER CONSTRUCTION</h2><p>このエリアは現在、制作中です。</p></div></div>
-    <nav id="global-nav" class="bottom-nav"></nav>
+<body oncontextmenu="return false;">
+    <div class="theater-bg"></div>
+
+    <div class="screen-container">
+        <img id="main-photo" src="" alt="Daily Moment">
+    </div>
+
+    <div class="comment-overlay" id="comment-area">
+        <div id="msg-A" class="bubble"></div>
+        <div id="msg-B" class="bubble"></div>
+        <div id="msg-C" class="bubble"></div>
+    </div>
+
+    <div class="audience-layer">
+        <img id="audience-img" src="https://media.yuto-boxer.com/05_YouthfulMoments/3boys.webp">
+    </div>
+
+    <nav class="film-roll" id="thumb-list"></nav>
+
     <script>
-        const configPath = '/666_pP6PqS_frG-H_Friday-the-13th/00_text/00_System_text/config.json';
-        async function initNav() {
+        const configPath = '/666_pP6PqS_frG-H_Friday-the-13th/youthful_moments.json';
+        let momentsData = [];
+
+        async function initTheater() {
             try {
-                const res = await fetch(configPath); const data = await res.json();
-                const nav = document.getElementById('global-nav'); const currentPath = window.location.pathname;
-                Object.keys(data.menu_items).forEach(key => {
-                    const item = data.menu_items[key]; if (!item.active) return;
-                    const a = document.createElement('a'); a.href = item.path; a.className = 'nav-item'; a.innerText = item.label; a.setAttribute('data-tooltip', item.jp);
-                    if (key === 'send_message') a.classList.add('send-message-btn');
-                    if (currentPath.indexOf(item.path) !== -1) a.classList.add('current');
-                    nav.appendChild(a);
-                });
-            } catch(e) {}
+                const response = await fetch(configPath);
+                momentsData = await response.json();
+                renderThumbs();
+                loadMoment(0);
+            } catch (e) { console.error("Config Load Error:", e); }
         }
-        window.onload = initNav;
+
+        function renderThumbs() {
+            const list = document.getElementById('thumb-list');
+            momentsData.forEach((d, i) => {
+                const div = document.createElement('div');
+                div.className = 'thumb';
+                div.innerHTML = `<img src="${d.img}">`;
+                div.onclick = () => loadMoment(i);
+                list.appendChild(div);
+            });
+        }
+
+        function loadMoment(index) {
+            const data = momentsData[index];
+            const photo = document.getElementById('main-photo');
+
+            photo.style.opacity = 0;
+            setTimeout(() => {
+                photo.src = data.img;
+                photo.style.opacity = 1;
+            }, 300);
+
+            ['msg-A', 'msg-B', 'msg-C'].forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.classList.remove('active');
+                setTimeout(() => {
+                    el.innerText = data.comments[i];
+                    el.classList.add('active');
+                }, 500 + (i * 400));
+            });
+
+            document.querySelectorAll('.thumb').forEach((t, i) => {
+                t.classList.toggle('active', i === index);
+            });
+        }
+
+        window.onload = initTheater;
     </script>
 </body>
 </html>
